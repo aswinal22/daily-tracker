@@ -89,10 +89,11 @@ export function GithubHeatmap({ values, numWeeks = 26 }: GithubHeatmapProps) {
   }, [values, numWeeks]);
 
   return (
-    <div className="gh-heatmap-wrapper scrollbar-thin overflow-x-auto">
+    <div className="gh-heatmap-wrapper">
       <svg
-        width={width}
-        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        width="100%"
+        preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-label="Activity heatmap"
         className="gh-heatmap"
