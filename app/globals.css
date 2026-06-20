@@ -47,13 +47,23 @@ body {
 
 /* ─── react-calendar-heatmap ─── */
 /* All styles defined here (library CSS import removed to avoid conflicts). */
-.react-calendar-heatmap {
-  max-width: 100%;
+
+/* Scale the whole heatmap down to a compact size */
+.heatmap-wrapper svg {
+  width: 100%;
+  height: auto;
+  max-height: 140px;
+  transform: scale(0.7);
+  transform-origin: top left;
+}
+.heatmap-wrapper {
+  width: calc(100% / 0.7);
+  max-height: 120px;
 }
 
 .react-calendar-heatmap text {
   fill: var(--muted-foreground);
-  font-size: 10px;
+  font-size: 8px;
 }
 
 /* Cell colors — light mode */

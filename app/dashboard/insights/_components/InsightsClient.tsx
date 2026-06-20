@@ -249,7 +249,7 @@ export function InsightsClient() {
 
       {/* Streak heatmap */}
       <ChartCard title="🔥 Activity Heatmap">
-        <div className="scrollbar-thin overflow-x-auto pb-2">
+        <div className="heatmap-wrapper scrollbar-thin overflow-x-auto pb-2">
           <CalendarHeatmap
             startDate={
               data.heatmap[0]?.date ||
@@ -257,7 +257,7 @@ export function InsightsClient() {
             }
             endDate={new Date().toISOString()}
             values={data.heatmap.map((d) => ({ date: d.date, count: d.count }))}
-            gutterSize={3}
+            gutterSize={2}
             classForValue={(value) => {
               if (!value || value.count === 0) return "color-empty";
               if (value.count === 1) return "color-scale-1";
