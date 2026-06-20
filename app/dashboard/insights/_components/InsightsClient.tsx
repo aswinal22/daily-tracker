@@ -5,7 +5,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar,
 } from "recharts";
-import CalendarHeatmap from "react-calendar-heatmap";
+import { GithubHeatmap } from "@/components/GithubHeatmap";
 import { cn } from "@/lib/utils";
 
 type Range = "week" | "month" | "3months" | "all";
@@ -247,37 +247,16 @@ export function InsightsClient() {
         </ChartCard>
       )}
 
-      {/* Streak heatmap */}
+      {/* Streak heatmap (GitHub/LeetCode style) */}
       <ChartCard title="🔥 Activity Heatmap">
-        <div className="heatmap-wrapper scrollbar-thin overflow-x-auto pb-2">
-          <CalendarHeatmap
-            startDate={
-              data.heatmap[0]?.date ||
-              new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString()
-            }
-            endDate={new Date().toISOString()}
-            values={data.heatmap.map((d) => ({ date: d.date, count: d.count }))}
-            gutterSize={2}
-            classForValue={(value) => {
-              if (!value || value.count === 0) return "color-empty";
-              if (value.count === 1) return "color-scale-1";
-              if (value.count === 2) return "color-scale-2";
-              if (value.count <= 4) return "color-scale-3";
-              return "color-scale-4";
-            }}
-            titleForValue={(value) => {
-              if (!value) return "No data";
-              return `${value.date}: ${value.count} task${value.count === 1 ? "" : "s"} completed`;
-            }}
-          />
-        </div>
-        <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+        <GithubHeatmap values={data.heatmap} numWeeks={26} />
+        <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
           <span>Less</span>
-          <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#e5e7eb" }} />
-          <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#c7d2fe" }} />
-          <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#818cf8" }} />
-          <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#4f46e5" }} />
-          <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#3730a3" }} />
+          <span className="gh-legend gh-cell-empty" />
+          <span className="gh-legend gh-cell-1" />
+          <span className="gh-legend gh-cell-2" />
+          <span className="gh-legend gh-cell-3" />
+          <span className="gh-legend gh-cell-4" />
           <span>More</span>
         </div>
       </ChartCard>
