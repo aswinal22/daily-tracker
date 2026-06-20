@@ -249,7 +249,7 @@ export function InsightsClient() {
 
       {/* Streak heatmap (GitHub/LeetCode style) */}
       <ChartCard title="🔥 Activity Heatmap">
-        <GithubHeatmap values={data.heatmap} numWeeks={26} />
+        <GithubHeatmap values={data.heatmap} numWeeks={53} />
         <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
           <span>Less</span>
           <span className="gh-legend gh-cell-empty" />
