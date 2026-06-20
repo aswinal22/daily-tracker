@@ -35,7 +35,6 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-  /* Custom scrollbar */
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -44,4 +43,27 @@ body {
     background: var(--border);
     border-radius: 9999px;
   }
+}
+
+/* react-calendar-heatmap color scale */
+.react-calendar-heatmap .color-empty {
+  fill: var(--muted);
+}
+.react-calendar-heatmap .color-scale-1 {
+  fill: #c7d2fe;
+}
+.react-calendar-heatmap .color-scale-2 {
+  fill: #818cf8;
+}
+.react-calendar-heatmap .color-scale-3 {
+  fill: #4f46e5;
+}
+.react-calendar-heatmap .color-scale-4 {
+  fill: #3730a3;
+}
+.react-calendar-heatmap rect {
+  rx: 2;
+  ry: 2;
+  stroke: var(--border);
+  stroke-width: 1;
 }

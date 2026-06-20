@@ -1,30 +1,23 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 
 /**
- * Supabase service-role client — bypasses RLS.
+ * Supabase client using the **service role key** — bypasses Row Level Security.
  *
- * SERVER-ONLY. Never import this into a Client Component or any file that
- * ends up in the browser bundle. Used by cron jobs and admin operations that
- * must act across all users.
+ * ⚠️ SERVER-ONLY. Never import this in a Client Component or expose the key to
+ * the browser. Use exclusively for operations that legitimately span all users:
+ * the Vercel Cron jobs (daily auto-archive, Saturday revision reminders).
  *
- * If env vars are not configured, this throws at first use rather than
- * silently returning a broken client — fail fast on misconfiguration.
+ * The service role key is injected via `SUPABASE_SERVICE_ROLE_KEY`.
  */
-let _client: ReturnType<typeof createClient> | null = null;
-
-export function getAdminClient() {
-  if (_client) return _client;
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY (or NEXT_PUBLIC_SUPABASE_URL) is not set. " +
-        "The admin client is server-only and requires the service role key.",
-    );
-  }
-  _client = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  return _client;
+export function createAdminClient() {
+  return createSupabaseAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    },
+  );
 }

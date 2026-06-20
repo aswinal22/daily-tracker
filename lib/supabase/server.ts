@@ -2,9 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 /**
- * Supabase server client — used in Server Components, Route Handlers, and
- * Server Actions. Reads the session from cookies. RLS still applies
- * (requests are scoped to the authenticated user).
+ * Supabase client for **Server Components and route handlers**.
+ * Reads the session from cookies so the current user's identity is known,
+ * and RLS still scopes every query to that user.
+ *
+ * Note: Next 14's `cookies()` is synchronous (it became async in Next 15).
  */
 export function createClient() {
   const cookieStore = cookies();
@@ -23,8 +25,8 @@ export function createClient() {
               cookieStore.set(name, value, options),
             );
           } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if middleware refreshes sessions.
+            // The `set` method was called from a Server Component (read-only
+            // cookies). Safe to ignore — middleware refreshes the session.
           }
         },
       },

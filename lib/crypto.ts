@@ -1,75 +1,65 @@
-import { createHash, createCipheriv, createDecipheriv, randomBytes } from "crypto";
+import { createHash, randomBytes, createCipheriv, createDecipheriv } from "crypto";
 
 /**
- * AES-256-GCM encryption for users' AI API keys at rest.
+ * AES-256-GCM encryption for users' AI API keys stored in `profiles.ai_api_key`.
  *
- * Key management (decision D1): a single app-level master key
- * (ENCRYPTION_KEY, 32 bytes base64) encrypts/decrypts all user keys.
- * The ciphertext stored in profiles.ai_api_key has the format:
+ * A single master key (`ENCRYPTION_KEY`, base64-encoded 32 bytes) encrypts every
+ * user key. Output format: `base64(iv | ciphertext | authTag)`.
  *
- *   base64(iv[12] || authTag[16] || ciphertext)
- *
- * Server-only. Never import from a client component.
+ * Server-only — the master key must never ship to the browser.
  */
 
-const IV_LENGTH = 12;
-const AUTH_TAG_LENGTH = 16;
 const ALGO = "aes-256-gcm";
+const IV_LEN = 12; // 96-bit IV is recommended for GCM
 
-function getKey(): Buffer {
+function masterKey(): Buffer {
   const raw = process.env.ENCRYPTION_KEY;
   if (!raw) {
     throw new Error(
       "ENCRYPTION_KEY is not set. Generate one with: openssl rand -base64 32",
     );
   }
-  // Accept either a raw 32-byte string or a base64-encoded 32-byte key.
-  let key: Buffer;
-  if (/^[A-Za-z0-9+/]+={0,2}$/.test(raw) && raw.length === 44) {
-    key = Buffer.from(raw, "base64");
-  } else {
-    key = Buffer.from(raw);
-  }
+  const key = Buffer.from(raw, "base64");
   if (key.length !== 32) {
-    // Derive a stable 32-byte key from whatever was provided.
-    key = createHash("sha256").update(raw).digest();
+    throw new Error(
+      `ENCRYPTION_KEY must decode to 32 bytes (got ${key.length}). Use: openssl rand -base64 32`,
+    );
   }
   return key;
 }
 
-export function encrypt(plainText: string): string {
-  const iv = randomBytes(IV_LENGTH);
-  const cipher = createCipheriv(ALGO, getKey(), iv);
-  const encrypted = Buffer.concat([
-    cipher.update(plainText, "utf8"),
+/** Encrypt a plaintext string → base64 payload. Returns null for empty input. */
+export function encrypt(plaintext: string | null | undefined): string | null {
+  if (!plaintext) return null;
+  const iv = randomBytes(IV_LEN);
+  const cipher = createCipheriv(ALGO, masterKey(), iv);
+  const enc = Buffer.concat([
+    cipher.update(plaintext, "utf8"),
     cipher.final(),
   ]);
-  const authTag = cipher.getAuthTag();
-  return Buffer.concat([iv, authTag, encrypted]).toString("base64");
+  const tag = cipher.getAuthTag();
+  return Buffer.concat([iv, enc, tag]).toString("base64");
 }
 
-export function decrypt(cipherText: string): string {
-  try {
-    const buf = Buffer.from(cipherText, "base64");
-    const iv = buf.subarray(0, IV_LENGTH);
-    const authTag = buf.subarray(IV_LENGTH, IV_LENGTH + AUTH_TAG_LENGTH);
-    const encrypted = buf.subarray(IV_LENGTH + AUTH_TAG_LENGTH);
-
-    const decipher = createDecipheriv(ALGO, getKey(), iv);
-    decipher.setAuthTag(authTag);
-    const decrypted = Buffer.concat([
-      decipher.update(encrypted),
-      decipher.final(),
-    ]);
-    return decrypted.toString("utf8");
-  } catch {
-    throw new Error(
-      "Failed to decrypt value. Check ENCRYPTION_KEY matches the one used at write time.",
-    );
-  }
+/** Decrypt a base64 payload back to plaintext. Returns null for empty input. */
+export function decrypt(payload: string | null | undefined): string | null {
+  if (!payload) return null;
+  const buf = Buffer.from(payload, "base64");
+  if (buf.length < IV_LEN + 16) throw new Error("Invalid ciphertext (too short)");
+  const iv = buf.subarray(0, IV_LEN);
+  const tag = buf.subarray(buf.length - 16);
+  const enc = buf.subarray(IV_LEN, buf.length - 16);
+  const decipher = createDecipheriv(ALGO, masterKey(), iv);
+  decipher.setAuthTag(tag);
+  const dec = Buffer.concat([decipher.update(enc), decipher.final()]);
+  return dec.toString("utf8");
 }
 
-/** True when an ENCRYPTION_KEY is configured. */
-export function hasEncryptionKey(): boolean {
-  return !!process.env.ENCRYPTION_KEY;
+/**
+ * Deterministic fingerprint of a key — safe to log/compare to detect changes
+ * without ever exposing the key itself. Returns null for empty input.
+ */
+export function keyFingerprint(plaintext: string | null | undefined): string | null {
+  if (!plaintext) return null;
+  return createHash("sha256").update(plaintext).digest("hex").slice(0, 12);
 }

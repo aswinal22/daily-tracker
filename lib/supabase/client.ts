@@ -1,8 +1,12 @@
 import { createBrowserClient } from "@supabase/ssr";
 
 /**
- * Supabase browser client — used in Client Components.
- * Anon key + RLS only. Never expose the service role key here.
+ * Supabase client for **browser/client components**.
+ * Uses the anon key and is subject to Row Level Security (RLS) — users
+ * can only ever touch their own rows.
+ *
+ * Call this from "use client" components, never from Server Components or
+ * route handlers (use @/lib/supabase/server there).
  */
 export function createClient() {
   return createBrowserClient(

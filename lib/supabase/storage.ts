@@ -20,7 +20,7 @@ export async function uploadVoiceNote(
   file: Blob | ArrayBuffer,
   contentType = "audio/webm",
 ): Promise<string> {
-  const admin = (await import("./admin")).getAdminClient();
+  const admin = (await import("./admin")).createAdminClient();
   const path = voiceNotePath(userId, taskId);
   const { error } = await admin.storage
     .from(VOICE_NOTES_BUCKET)
@@ -41,7 +41,7 @@ export async function deleteVoiceNote(
   taskId: string,
   ext = "webm",
 ) {
-  const admin = (await import("./admin")).getAdminClient();
+  const admin = (await import("./admin")).createAdminClient();
   const path = voiceNotePath(userId, taskId, ext);
   const { error } = await admin.storage.from(VOICE_NOTES_BUCKET).remove([path]);
   if (error) throw new Error(`Delete failed: ${error.message}`);
