@@ -45,25 +45,38 @@ body {
   }
 }
 
-/* react-calendar-heatmap color scale */
-.react-calendar-heatmap .color-empty {
-  fill: var(--muted);
+/* ─── react-calendar-heatmap ─── */
+/* All styles defined here (library CSS import removed to avoid conflicts). */
+.react-calendar-heatmap {
+  max-width: 100%;
 }
-.react-calendar-heatmap .color-scale-1 {
+
+.react-calendar-heatmap text {
+  fill: var(--muted-foreground);
+  font-size: 10px;
+}
+
+/* Cell colors — light mode */
+.react-calendar-heatmap rect.color-empty {
+  fill: #e5e7eb;
+}
+.react-calendar-heatmap rect.color-scale-1 {
   fill: #c7d2fe;
 }
-.react-calendar-heatmap .color-scale-2 {
+.react-calendar-heatmap rect.color-scale-2 {
   fill: #818cf8;
 }
-.react-calendar-heatmap .color-scale-3 {
+.react-calendar-heatmap rect.color-scale-3 {
   fill: #4f46e5;
 }
-.react-calendar-heatmap .color-scale-4 {
+.react-calendar-heatmap rect.color-scale-4 {
   fill: #3730a3;
 }
-.react-calendar-heatmap rect {
-  rx: 2;
-  ry: 2;
-  stroke: var(--border);
-  stroke-width: 1;
+
+/* Cell colors — dark mode */
+.dark .react-calendar-heatmap rect.color-empty {
+  fill: #27272a;
+}
+.dark .react-calendar-heatmap text {
+  fill: #71717a;
 }
