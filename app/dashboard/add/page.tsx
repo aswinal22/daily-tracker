@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
+import { DatePicker } from "@/components/DatePicker";
 import { CATEGORIES, PRIORITIES } from "@/types";
 
 export default function AddTaskPage() {
@@ -20,6 +21,10 @@ export default function AddTaskPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!endDate) {
+      showToast("Please pick an end date", "error");
+      return;
+    }
     setLoading(true);
 
     const res = await fetch("/api/tasks", {
@@ -132,14 +137,13 @@ export default function AddTaskPage() {
           <label className="mb-1.5 block text-sm font-medium">
             End date <span className="text-red-500">*</span>
           </label>
-          <input
-            type="date"
-            required
+          <DatePicker
             value={endDate}
+            onChange={setEndDate}
             min={todayStr}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+            placeholder="Pick a deadline"
           />
+          <input type="hidden" name="end_date" value={endDate} />
         </div>
 
         <div className="flex gap-3">
