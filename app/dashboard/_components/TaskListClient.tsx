@@ -94,6 +94,23 @@ export function TaskListClient({ initialTasks }: TaskListClientProps) {
     setVoicePromptTask(null);
   }, []);
 
+  const handleNotesUpdate = useCallback(
+    async (taskId: string, notes: string) => {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: notes || null }),
+      });
+      if (res.ok) {
+        showToast("📝 Notes saved", "success");
+        refresh();
+      } else {
+        showToast("Failed to save notes", "error");
+      }
+    },
+    [refresh, showToast],
+  );
+
   // ─── Derived state ───
   const activeTasks = tasks.filter((t) => t.status === "pending");
   const completedTasks = tasks.filter((t) => t.status === "completed");
@@ -208,6 +225,7 @@ export function TaskListClient({ initialTasks }: TaskListClientProps) {
                 key={task.id}
                 task={task}
                 onDelete={handleDelete}
+                onNotesUpdate={handleNotesUpdate}
                 showActions={false}
               />
             ))}

@@ -18,6 +18,7 @@ interface TaskCardProps {
   onComplete?: (task: Task) => void;
   onDelete?: (task: Task) => void;
   onMotivate?: (task: Task) => void;
+  onNotesUpdate?: (taskId: string, notes: string) => Promise<void>;
   showActions?: boolean;
 }
 
@@ -26,10 +27,14 @@ export function TaskCard({
   onComplete,
   onDelete,
   onMotivate,
+  onNotesUpdate,
   showActions = true,
 }: TaskCardProps) {
   const [loading, setLoading] = useState<string | null>(null);
   const [showPlayer, setShowPlayer] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState(task.notes || "");
+  const [savingNotes, setSavingNotes] = useState(false);
 
   const overdue = daysOverdue(task.end_date) > 0 && task.status === "pending";
   const dueSoon =
@@ -46,6 +51,16 @@ export function TaskCard({
       await fn(task);
     } finally {
       setLoading(null);
+    }
+  }
+
+  async function handleSaveNotes() {
+    setSavingNotes(true);
+    try {
+      await onNotesUpdate?.(task.id, notesValue.trim());
+      setEditingNotes(false);
+    } finally {
+      setSavingNotes(false);
     }
   }
 
@@ -68,6 +83,13 @@ export function TaskCard({
               {task.task_name}
             </h3>
           </div>
+
+          {/* Description */}
+          {task.description && (
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              {task.description}
+            </p>
+          )}
 
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
             <span
@@ -115,6 +137,59 @@ export function TaskCard({
                   className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition hover:bg-muted"
                 >
                   🎤 Play voice note
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Learning notes — show if present, or allow editing on completed tasks */}
+          {(task.notes || (task.status === "completed" && onNotesUpdate)) && (
+            <div className="mt-3">
+              {editingNotes ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={notesValue}
+                    onChange={(e) => setNotesValue(e.target.value)}
+                    placeholder="What did you learn?"
+                    rows={3}
+                    autoFocus
+                    className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSaveNotes}
+                      disabled={savingNotes}
+                      className="rounded-lg bg-accent px-3 py-1 text-xs font-medium text-accent-foreground transition hover:opacity-90 disabled:opacity-50"
+                    >
+                      {savingNotes ? "Saving..." : "Save"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingNotes(false);
+                        setNotesValue(task.notes || "");
+                      }}
+                      className="rounded-lg border border-border px-3 py-1 text-xs font-medium transition hover:bg-muted"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : task.notes ? (
+                <div
+                  className="cursor-pointer rounded-lg bg-muted/50 p-3 text-sm"
+                  onClick={() => onNotesUpdate && setEditingNotes(true)}
+                >
+                  <p className="mb-0.5 text-xs font-medium text-muted-foreground">
+                    📝 Learning notes:
+                  </p>
+                  <p className="whitespace-pre-wrap">{task.notes}</p>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setEditingNotes(true)}
+                  className="text-xs text-accent hover:underline"
+                >
+                  + Add learning notes
                 </button>
               )}
             </div>

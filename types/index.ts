@@ -41,6 +41,8 @@ export interface Task {
   id: string;
   user_id: string;
   task_name: string;
+  description: string | null; // what the task is about
+  notes: string | null; // what I learned (added after completion)
   category: Category;
   priority: Priority;
   status: TaskStatus;
@@ -55,10 +57,12 @@ export interface Task {
 export type TaskInsert = Pick<
   Task,
   "task_name" | "category" | "priority" | "end_date"
->;
+> & {
+  description?: string | null;
+};
 
 export type TaskUpdate = Partial<
-  Pick<Task, "task_name" | "category" | "priority" | "end_date" | "status" | "voice_note_url" | "revised" | "revision_week">
+  Pick<Task, "task_name" | "description" | "notes" | "category" | "priority" | "end_date" | "status" | "voice_note_url" | "revised" | "revision_week">
 >;
 
 // ─── scratchpad ──────────────────────────────────────────────
@@ -74,6 +78,8 @@ export interface ArchivedTask {
   id: string; // original task id
   user_id: string;
   task_name: string;
+  description: string | null;
+  notes: string | null;
   category: Category;
   priority: Priority;
   end_date: string;

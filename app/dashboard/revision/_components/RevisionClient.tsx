@@ -138,13 +138,21 @@ export function RevisionClient({
 
           <h2 className="text-xl font-bold">{currentTask.task_name}</h2>
 
-          {/* Self-check prompt */}
-          <div className="mt-6 rounded-lg border border-border bg-muted/30 p-4">
-            <p className="text-sm font-medium">Quick self-check:</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              What were the key things you learned from this?
-            </p>
-          </div>
+          {/* Description */}
+          {currentTask.description && (
+            <div className="mt-3 rounded-lg bg-muted/30 p-3">
+              <p className="text-xs font-medium text-muted-foreground">📋 Description:</p>
+              <p className="mt-1 text-sm">{currentTask.description}</p>
+            </div>
+          )}
+
+          {/* Learning notes */}
+          {currentTask.notes && (
+            <div className="mt-3 rounded-lg bg-indigo-50/50 p-3 dark:bg-indigo-950/20">
+              <p className="text-xs font-medium text-indigo-700 dark:text-indigo-300">📝 What you learned:</p>
+              <p className="mt-1 whitespace-pre-wrap text-sm">{currentTask.notes}</p>
+            </div>
+          )}
 
           {/* Voice note (if exists) */}
           {currentTask.voice_note_url && (

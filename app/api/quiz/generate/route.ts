@@ -47,16 +47,16 @@ export async function POST() {
     throw err;
   }
 
-  // Fetch this week's Upskillment tasks
+  // Fetch this week's Upskillment tasks — include description and notes
   const weekStart = weekStartUTC().toISOString().slice(0, 10);
   const { data: tasks, error } = await supabase
     .from("tasks")
-    .select("task_name")
+    .select("task_name, description, notes")
     .eq("user_id", user.id)
     .eq("category", "Upskillment")
     .eq("status", "completed")
     .gte("completed_at", weekStart)
-    .returns<Pick<Task, "task_name">[]>();
+    .returns<Pick<Task, "task_name" | "description" | "notes">[]>();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -67,7 +67,14 @@ export async function POST() {
     );
   }
 
+  // Build study topics with context from description and notes
   const topics = tasks.map((t) => t.task_name);
+  const studyContext = tasks.map((t) => {
+    let context = t.task_name;
+    if (t.description) context += `\n  Description: ${t.description}`;
+    if (t.notes) context += `\n  What I learned: ${t.notes}`;
+    return context;
+  });
   const weekRange = `${formatDate(weekStartUTC(), "MMM d")} – ${formatDate(new Date(), "MMM d")}`;
 
   // Generate quiz (with retry on parse failure)
@@ -76,7 +83,7 @@ export async function POST() {
 
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const raw = await generateQuiz(config, { topics, weekRange });
+      const raw = await generateQuiz(config, { topics, studyContext, weekRange });
 
       // Validate against strict schema
       const result = quizDataSchema.safeParse(raw);

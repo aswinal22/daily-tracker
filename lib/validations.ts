@@ -6,6 +6,7 @@ export const prioritySchema = z.enum(["High", "Medium", "Low"]);
 
 export const createTaskSchema = z.object({
   task_name: z.string().min(1, "Task name is required").max(500),
+  description: z.string().max(5000).nullable().optional(),
   category: categorySchema,
   priority: prioritySchema,
   end_date: z.string().min(1, "End date is required"), // yyyy-mm-dd
@@ -13,6 +14,8 @@ export const createTaskSchema = z.object({
 
 export const updateTaskSchema = z.object({
   task_name: z.string().min(1).max(500).optional(),
+  description: z.string().max(5000).nullable().optional(),
+  notes: z.string().max(5000).nullable().optional(),
   category: categorySchema.optional(),
   priority: prioritySchema.optional(),
   end_date: z.string().min(1).optional(),

@@ -35,6 +35,8 @@ export async function autoArchive(
     id: t.id,
     user_id: t.user_id,
     task_name: t.task_name,
+    description: t.description,
+    notes: t.notes,
     category: t.category,
     priority: t.priority,
     end_date: t.end_date,

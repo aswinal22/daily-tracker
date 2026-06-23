@@ -185,23 +185,29 @@ export async function generateQuiz(
   config: AIConfig,
   opts: {
     topics: string[];
+    studyContext?: string[];
     weekRange: string;
   },
 ): Promise<unknown> {
   const client = createAIClient(config);
 
-  const topicList = opts.topics.map((t, i) => `${i + 1}. ${t}`).join("\n");
-  // Keep it to 5 questions (spec minimum) — faster generation
+  // Use study context (description + notes) if available for richer questions
+  const contextLines = opts.studyContext && opts.studyContext.length > 0
+    ? opts.studyContext.map((c, i) => `${i + 1}. ${c}`).join("\n")
+    : opts.topics.map((t, i) => `${i + 1}. ${t}`).join("\n");
+
   const totalQuestions = Math.min(6, Math.max(5, opts.topics.length + 1));
 
-  const prompt = `Create a ${totalQuestions}-question quiz about these topics studied this week (${opts.weekRange}):
+  const prompt = `Create a ${totalQuestions}-question quiz based on what the user studied this week (${opts.weekRange}):
 
-${topicList}
+${contextLines}
 
 Rules:
 - 4 MCQ questions (each with exactly 4 options A/B/C/D)
 - 1-2 short answer questions
 - One correct answer per question
+- Questions should test understanding of the concepts described above
+- If the user wrote notes about what they learned, base questions on those notes
 - Brief explanation for each
 
 Output ONLY this JSON (no markdown, no extra text):
