@@ -261,6 +261,51 @@ Output ONLY this JSON (no markdown, no extra text):
 }
 
 /**
+ * Generate a focused quiz about a SINGLE task/topic.
+ * Used for per-task quizzes during revision.
+ */
+export async function generateTaskQuiz(
+  config: AIConfig,
+  opts: {
+    taskName: string;
+    studyContext: string;
+    weekRange: string;
+  },
+): Promise<unknown> {
+  const client = createAIClient(config);
+
+  const prompt = `Create a 5-question quiz about this specific topic the user studied (${opts.weekRange}):
+
+${opts.studyContext}
+
+Rules:
+- 4 MCQ questions (each with exactly 4 options A/B/C/D)
+- 1 short answer question
+- One correct answer per question
+- Test understanding of the concepts, not memorization
+- If the user wrote notes about what they learned, base questions on those notes
+- Brief explanation for each answer
+
+Output ONLY this JSON (no markdown, no extra text):
+{"questions":[{"id":1,"type":"mcq","question":"What is...?","options":["A","B","C","D"],"correct_answer":"B","user_answer":null,"is_correct":null,"explanation":"Because..."},{"id":2,"type":"short_answer","question":"Explain...","options":null,"correct_answer":"The answer","user_answer":null,"is_correct":null,"explanation":"Because..."}],"metadata":{"generated_at":"${new Date().toISOString()}","ai_model":"${config.model}","topics":["${opts.taskName}"],"total_questions":5,"mcq_count":4,"short_answer_count":1}}`;
+
+  const completion = await client.chat.completions.create({
+    model: config.model,
+    messages: [
+      { role: "system", content: "You are a quiz generator. Output ONLY valid JSON, no markdown." },
+      { role: "user", content: prompt },
+    ],
+    temperature: 0.5,
+    max_tokens: 1200,
+  });
+
+  const raw = completion.choices[0]?.message?.content;
+  if (!raw) throw new Error("AI returned empty quiz response");
+
+  return extractJSON(raw);
+}
+
+/**
  * Evaluate a short-answer question semantically (not exact match).
  * Used for quiz grading per spec §5 (5-rule prompt).
  */

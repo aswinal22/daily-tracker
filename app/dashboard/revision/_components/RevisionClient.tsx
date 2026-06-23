@@ -12,13 +12,15 @@ interface RevisionClientProps {
   initialStreak: { current_streak: number; longest_streak: number };
 }
 
+type Phase = "revising" | "quiz-prompt" | "done";
+
 export function RevisionClient({
   initialTasks,
   initialStreak,
 }: RevisionClientProps) {
   const [tasks] = useState(initialTasks);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [completed, setCompleted] = useState(false);
+  const [phase, setPhase] = useState<Phase>("revising");
   const [loading, setLoading] = useState<string | null>(null);
   const { showToast } = useToast();
 
@@ -45,19 +47,24 @@ export function RevisionClient({
 
       if (action === "revised") {
         showToast("✓ Marked as revised", "success");
+        // Show quiz prompt instead of auto-advancing
+        setPhase("quiz-prompt");
       } else {
         showToast("Skipped for now", "info");
-      }
-
-      // Move to next
-      if (currentIndex < tasks.length - 1) {
-        setCurrentIndex((i) => i + 1);
-      } else {
-        setCompleted(true);
+        moveToNext();
       }
     },
-    [currentTask, currentIndex, tasks.length, showToast],
+    [currentTask, showToast],
   );
+
+  const moveToNext = useCallback(() => {
+    if (currentIndex < tasks.length - 1) {
+      setCurrentIndex((i) => i + 1);
+      setPhase("revising");
+    } else {
+      setPhase("done");
+    }
+  }, [currentIndex, tasks.length]);
 
   // Empty state
   if (tasks.length === 0) {
@@ -81,8 +88,8 @@ export function RevisionClient({
     );
   }
 
-  // All revised
-  if (completed) {
+  // All done
+  if (phase === "done") {
     return (
       <div className="space-y-6">
         <RevisionHeader streak={initialStreak} />
@@ -90,20 +97,19 @@ export function RevisionClient({
           <p className="text-4xl">🎉</p>
           <h3 className="mt-4 text-xl font-bold">Revision Complete!</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            You&apos;ve reviewed all {tasks.length} tasks. Ready to test your knowledge?
+            You&apos;ve reviewed all {tasks.length} tasks this week.
           </p>
           <Link
-            href="/dashboard/quiz"
+            href="/dashboard"
             className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 font-medium text-accent-foreground transition hover:opacity-90"
           >
-            🧠 Take the Quiz
+            ← Back to Dashboard
           </Link>
         </div>
       </div>
     );
   }
 
-  // Active revision
   return (
     <div className="space-y-6">
       <RevisionHeader streak={initialStreak} />
@@ -125,7 +131,7 @@ export function RevisionClient({
       </div>
 
       {/* Current task card */}
-      {currentTask && (
+      {currentTask && phase === "revising" && (
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
             <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
@@ -181,6 +187,33 @@ export function RevisionClient({
           </div>
         </div>
       )}
+
+      {/* Quiz prompt — shown after marking revised */}
+      {currentTask && phase === "quiz-prompt" && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-900 dark:bg-emerald-950/20">
+          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+            ✓ {currentTask.task_name} — marked as revised!
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Take a quick quiz to test your understanding of this topic?
+          </p>
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href={`/dashboard/quiz?taskId=${currentTask.id}`}
+              className="rounded-xl bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition hover:opacity-90"
+            >
+              🧠 Quiz this topic
+            </Link>
+            <button
+              onClick={moveToNext}
+              className="rounded-xl border border-border px-6 py-2.5 text-sm font-medium transition hover:bg-muted"
+            >
+              {currentIndex < tasks.length - 1 ? "Next topic →" : "Finish revision"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -195,7 +228,7 @@ function RevisionHeader({
       <div>
         <h1 className="text-2xl font-bold">📚 Weekend Revision</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Review what you learned this week, then take a quiz.
+          Review each topic, then take a quiz to test your knowledge.
         </p>
       </div>
       {streak.current_streak > 0 && (

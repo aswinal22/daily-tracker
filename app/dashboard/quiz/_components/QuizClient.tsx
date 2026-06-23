@@ -7,7 +7,15 @@ import type { QuizQuestion, QuizData } from "@/types";
 import { useToast } from "@/components/Toast";
 import { cn } from "@/lib/utils";
 
-export function QuizClient() {
+export function QuizClient({
+  mode = "combined",
+  taskId,
+  taskName,
+}: {
+  mode?: "per-task" | "combined";
+  taskId?: string;
+  taskName?: string;
+}) {
   const router = useRouter();
   const { showToast } = useToast();
   const [phase, setPhase] = useState<"idle" | "generating" | "active" | "submitting">("idle");
@@ -24,10 +32,17 @@ export function QuizClient() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 55_000);
 
+    // Send task_id for per-task mode
+    const body = mode === "per-task" && taskId
+      ? JSON.stringify({ task_id: taskId })
+      : "{}";
+
     let res: Response;
     try {
       res = await fetch("/api/quiz/generate", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
         signal: controller.signal,
       });
     } catch (err) {
@@ -88,8 +103,13 @@ export function QuizClient() {
     }
 
     showToast("Quiz graded!", "success");
-    router.push("/dashboard/quiz/results");
-  }, [quizData, answers, router, showToast]);
+    // In per-task mode, go back to revision; in combined mode, show results
+    if (mode === "per-task") {
+      router.push("/dashboard/revision");
+    } else {
+      router.push("/dashboard/quiz/results");
+    }
+  }, [quizData, answers, router, showToast, mode]);
 
   // ─── Render ───
 
@@ -98,17 +118,22 @@ export function QuizClient() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">🧠 Knowledge Check</h1>
+          <h1 className="text-2xl font-bold">
+            🧠 {mode === "per-task" && taskName ? `Quiz: ${taskName}` : "Knowledge Check"}
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Test what you learned this week with an AI-generated quiz.
+            {mode === "per-task"
+              ? "Test your understanding of this specific topic."
+              : "Test what you learned this week with an AI-generated quiz."}
           </p>
         </div>
         <div className="rounded-xl border border-border bg-card p-8 text-center">
           <p className="text-4xl">🧠</p>
           <h3 className="mt-4 text-lg font-medium">Ready for your quiz?</h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            The quiz is based on your Upskillment tasks completed this week.
-            It includes multiple choice and short-answer questions.
+            {mode === "per-task"
+              ? "5 questions based on this task's description and your notes."
+              : "The quiz is based on your revised Upskillment tasks this week."}
           </p>
           {error && (
             <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
