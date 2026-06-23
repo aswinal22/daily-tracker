@@ -3,7 +3,13 @@ export const maxDuration = 60;
 
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { resolveAIConfig, generateMotivation, AIConfigError } from "@/lib/ai";
+import {
+  resolveAIConfig,
+  generateMotivation,
+  AIConfigError,
+  isRateLimitError,
+  getAIErrorMessage,
+} from "@/lib/ai";
 import { sendMotivationEmail } from "@/lib/email";
 import { validate, motivateSchema } from "@/lib/validations";
 import { daysOverdue } from "@/lib/utils";
@@ -121,11 +127,10 @@ export async function POST(request: NextRequest) {
 
   if (failed.length > 0 && succeeded.length === 0) {
     const firstError = (failed[0] as PromiseRejectedResult).reason;
+    const status = isRateLimitError(firstError) ? 429 : 500;
     return NextResponse.json(
-      {
-        error: firstError instanceof Error ? firstError.message : "Motivation generation failed",
-      },
-      { status: 500 },
+      { error: getAIErrorMessage(firstError) },
+      { status },
     );
   }
 

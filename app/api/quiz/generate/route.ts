@@ -3,7 +3,13 @@ export const maxDuration = 60;
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { resolveAIConfig, generateQuiz, AIConfigError } from "@/lib/ai";
+import {
+  resolveAIConfig,
+  generateQuiz,
+  AIConfigError,
+  isRateLimitError,
+  getAIErrorMessage,
+} from "@/lib/ai";
 import { quizDataSchema } from "@/lib/validations";
 import { weekStartUTC, formatDate } from "@/lib/utils";
 import type { Task, Profile } from "@/types";
@@ -77,7 +83,7 @@ export async function POST() {
   });
   const weekRange = `${formatDate(weekStartUTC(), "MMM d")} – ${formatDate(new Date(), "MMM d")}`;
 
-  // Generate quiz (with retry on parse failure)
+  // Generate quiz (retry on parse failure, but NOT on rate limits)
   let quizData: unknown = null;
   let lastError: string | null = null;
 
@@ -94,7 +100,14 @@ export async function POST() {
         lastError = `Quiz schema validation failed: ${result.error.issues.map((i) => i.message).join("; ")}`;
       }
     } catch (err) {
-      lastError = err instanceof Error ? err.message : "Quiz generation failed";
+      // Don't retry on rate limits — it makes the situation worse
+      if (isRateLimitError(err)) {
+        return NextResponse.json(
+          { error: getAIErrorMessage(err) },
+          { status: 429 },
+        );
+      }
+      lastError = getAIErrorMessage(err);
     }
   }
 

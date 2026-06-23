@@ -73,8 +73,8 @@ export function createAIClient(config: AIConfig): OpenAI {
   return new OpenAI({
     apiKey: config.apiKey,
     baseURL: config.baseURL,
-    timeout: 50_000, // 50s — leave headroom under Vercel's 60s function limit
-    maxRetries: 1,
+    timeout: 50_000,
+    maxRetries: 0, // We handle retries ourselves — SDK retries make rate limits worse
     defaultHeaders: isOpenRouter
       ? {
           "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://daily-tracker-mu-roan.vercel.app",
@@ -82,6 +82,37 @@ export function createAIClient(config: AIConfig): OpenAI {
         }
       : undefined,
   });
+}
+
+/** Check if an error is a rate-limit (429) from the provider. */
+export function isRateLimitError(err: unknown): boolean {
+  if (err && typeof err === "object" && "status" in err) {
+    return (err as { status: number }).status === 429;
+  }
+  if (err instanceof Error) {
+    const msg = err.message.toLowerCase();
+    return msg.includes("429") || msg.includes("rate limit") || msg.includes("too many requests");
+  }
+  return false;
+}
+
+/** Extract a user-friendly message from an API error. */
+export function getAIErrorMessage(err: unknown): string {
+  if (isRateLimitError(err)) {
+    return "The AI provider is rate-limiting requests (429). Free models have strict limits. Please wait 1-2 minutes and try again, or switch to a paid model in Settings.";
+  }
+  if (err instanceof Error) {
+    // OpenRouter / OpenAI often wrap the real message
+    const msg = err.message;
+    if (msg.includes("401") || msg.includes("incorrect api key")) {
+      return "Invalid API key. Check your AI provider settings.";
+    }
+    if (msg.includes("404") || msg.includes("model")) {
+      return "Model not found. Check the model name in Settings — it may be deprecated.";
+    }
+    return msg;
+  }
+  return "An unexpected error occurred. Please try again.";
 }
 
 /**
