@@ -10,6 +10,10 @@ interface AudioPlayerProps {
 /**
  * Inline audio player with a play/pause button and a progress bar.
  * Uses a native <audio> element under the hood for broad compatibility.
+ *
+ * Handles the known "Infinity duration" bug with blob URLs (from
+ * MediaRecorder) by seeking to the end to force the browser to compute
+ * the real duration.
  */
 export function AudioPlayer({ src, className }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -24,25 +28,49 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
 
     const onTimeUpdate = () => {
       setCurrent(audio.currentTime);
-      if (audio.duration > 0) {
+      if (isFinite(audio.duration) && audio.duration > 0) {
         setProgress((audio.currentTime / audio.duration) * 100);
       }
     };
-    const onLoadedMetadata = () => setDuration(audio.duration);
+
+    const onLoadedMetadata = () => {
+      if (isFinite(audio.duration) && audio.duration > 0) {
+        setDuration(audio.duration);
+      } else {
+        // Blob URLs (MediaRecorder) report Infinity — force the browser
+        // to compute the real duration by seeking to a huge timestamp.
+        audio.currentTime = 1e101;
+      }
+    };
+
+    const onDurationChange = () => {
+      if (isFinite(audio.duration) && audio.duration > 0) {
+        setDuration(audio.duration);
+        // Reset playback position after the seek-trick
+        if (audio.currentTime > audio.duration) {
+          audio.currentTime = 0;
+        }
+      }
+    };
+
     const onEnded = () => {
       setPlaying(false);
       setProgress(0);
+      setCurrent(0);
     };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    audio.addEventListener("durationchange", onDurationChange);
     audio.addEventListener("ended", onEnded);
+
     return () => {
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      audio.removeEventListener("durationchange", onDurationChange);
       audio.removeEventListener("ended", onEnded);
     };
-  }, []);
+  }, [src]);
 
   const toggle = () => {
     const audio = audioRef.current;
@@ -57,6 +85,7 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   };
 
   const fmt = (s: number) => {
+    if (!isFinite(s) || s < 0) return "--:--";
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
     return `${m}:${sec.toString().padStart(2, "0")}`;
