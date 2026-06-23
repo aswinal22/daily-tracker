@@ -19,7 +19,28 @@ export function QuizClient() {
   const generate = useCallback(async () => {
     setPhase("generating");
     setError(null);
-    const res = await fetch("/api/quiz/generate", { method: "POST" });
+
+    // Use AbortController with a 55s timeout (leaves headroom under Vercel's 60s limit)
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 55_000);
+
+    let res: Response;
+    try {
+      res = await fetch("/api/quiz/generate", {
+        method: "POST",
+        signal: controller.signal,
+      });
+    } catch (err) {
+      clearTimeout(timeout);
+      setPhase("idle");
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setError("The AI took too long to respond. Free models can be slow — please try again.");
+      } else {
+        setError("Network error. Please try again.");
+      }
+      return;
+    }
+    clearTimeout(timeout);
     setPhase("idle");
 
     if (!res.ok) {
@@ -121,6 +142,9 @@ export function QuizClient() {
         <div className="rounded-xl border border-border bg-card p-12 text-center">
           <p className="animate-pulse text-lg text-muted-foreground">
             🤖 Generating your quiz...
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Free AI models can take 30-60 seconds. Please wait...
           </p>
         </div>
       </div>

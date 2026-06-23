@@ -1,3 +1,6 @@
+// Extend timeout for LLM calls (OpenRouter free models can take 30-60s)
+export const maxDuration = 60;
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { resolveAIConfig, generateQuiz, AIConfigError } from "@/lib/ai";

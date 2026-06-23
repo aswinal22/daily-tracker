@@ -67,9 +67,20 @@ export function resolveAIConfig(profile: Pick<
 
 /** Create a configured OpenAI-compatible client. */
 export function createAIClient(config: AIConfig): OpenAI {
+  // OpenRouter requires HTTP-Referer and X-Title headers
+  const isOpenRouter = config.baseURL.includes("openrouter.ai");
+
   return new OpenAI({
     apiKey: config.apiKey,
     baseURL: config.baseURL,
+    timeout: 50_000, // 50s — leave headroom under Vercel's 60s function limit
+    maxRetries: 1,
+    defaultHeaders: isOpenRouter
+      ? {
+          "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://daily-tracker-mu-roan.vercel.app",
+          "X-Title": "Daily Task Dashboard",
+        }
+      : undefined,
   });
 }
 
