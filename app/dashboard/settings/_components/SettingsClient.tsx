@@ -29,6 +29,7 @@ export function SettingsClient({ initialProfile, email }: SettingsClientProps) {
   const [aiModel, setAiModel] = useState(initialProfile.ai_model ?? "");
   const [apiKey, setApiKey] = useState("");
   const [hasApiKey, setHasApiKey] = useState(initialProfile.has_ai_key);
+  const [replaceMode, setReplaceMode] = useState(false);
   const [notifications, setNotifications] = useState(initialProfile.notifications);
   const [saving, setSaving] = useState<"profile" | "ai" | "prefs" | null>(null);
   const { showToast } = useToast();
@@ -70,6 +71,7 @@ export function SettingsClient({ initialProfile, email }: SettingsClientProps) {
     if (res.ok) {
       showToast("AI provider saved", "success");
       setApiKey("");
+      setReplaceMode(false);
       setHasApiKey(Boolean(apiKey) || hasApiKey);
     } else {
       const data = await res.json().catch(() => ({}));
@@ -108,6 +110,8 @@ export function SettingsClient({ initialProfile, email }: SettingsClientProps) {
     });
     if (res.ok) {
       setHasApiKey(false);
+      setReplaceMode(false);
+      setApiKey("");
       showToast("API key removed", "info");
     }
   };
@@ -228,13 +232,17 @@ export function SettingsClient({ initialProfile, email }: SettingsClientProps) {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">API Key</label>
-            {hasApiKey ? (
+            {hasApiKey && !replaceMode ? (
+              /* Key exists and not in replace mode — show saved state */
               <div className="flex items-center gap-3">
                 <span className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                   ✓ Key saved
                 </span>
                 <button
-                  onClick={() => setApiKey("xxxx")}
+                  onClick={() => {
+                    setReplaceMode(true);
+                    setApiKey("");
+                  }}
                   className="text-xs text-accent hover:underline"
                 >
                   Replace key
@@ -247,22 +255,14 @@ export function SettingsClient({ initialProfile, email }: SettingsClientProps) {
                 </button>
               </div>
             ) : (
+              /* No key OR replace mode — show the input field */
               <input
                 type="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder="sk-..."
+                placeholder={hasApiKey ? "Enter new key..." : "sk-or-..."}
+                autoFocus={replaceMode}
                 className="w-full max-w-md rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
-              />
-            )}
-            {apiKey === "xxxx" && (
-              <input
-                type="password"
-                value=""
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter new key..."
-                autoFocus
-                className="mt-2 w-full max-w-md rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
             )}
           </div>

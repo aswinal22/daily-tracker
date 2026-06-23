@@ -85,6 +85,48 @@ export function createAIClient(config: AIConfig): OpenAI {
 }
 
 /**
+ * Extract JSON from an LLM text response.
+ * Handles common cases:
+ *   - Raw JSON
+ *   - JSON wrapped in ```json ... ``` code fences
+ *   - JSON with leading/trailing text
+ */
+function extractJSON(raw: string): unknown {
+  const trimmed = raw.trim();
+
+  // Case 1: already valid JSON
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    // continue
+  }
+
+  // Case 2: wrapped in markdown code fences ```json ... ```
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) {
+    try {
+      return JSON.parse(fenceMatch[1].trim());
+    } catch {
+      // continue
+    }
+  }
+
+  // Case 3: find the first { and last } — extract the JSON object
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    const jsonStr = trimmed.substring(firstBrace, lastBrace + 1);
+    try {
+      return JSON.parse(jsonStr);
+    } catch {
+      // continue
+    }
+  }
+
+  throw new Error("Could not extract valid JSON from AI response");
+}
+
+/**
  * Generate a personalized motivational message for an overdue task.
  * Returns 3-5 sentences of encouragement.
  */
@@ -134,6 +176,10 @@ Guidelines:
 /**
  * Generate quiz questions from a list of topics (for weekend revision).
  * Returns strictly-validated JSON matching the QuizData schema.
+ *
+ * Note: Does NOT use response_format json_object — many providers (especially
+ * OpenRouter free models) don't support it. Instead we instruct the model
+ * to output JSON and extract it from the text response.
  */
 export async function generateQuiz(
   config: AIConfig,
@@ -145,59 +191,36 @@ export async function generateQuiz(
   const client = createAIClient(config);
 
   const topicList = opts.topics.map((t, i) => `${i + 1}. ${t}`).join("\n");
-  const totalQuestions = Math.min(10, Math.max(5, opts.topics.length + 2));
+  // Keep it to 5 questions (spec minimum) — faster generation
+  const totalQuestions = Math.min(6, Math.max(5, opts.topics.length + 1));
 
-  const prompt = `You are an expert educator creating a knowledge-check quiz. Generate ${totalQuestions} questions based on these topics that the user studied this week (${opts.weekRange}):
+  const prompt = `Create a ${totalQuestions}-question quiz about these topics studied this week (${opts.weekRange}):
 
 ${topicList}
 
-Requirements:
-- Mix of MCQ (multiple choice, exactly 4 options) and short_answer questions.
-- At least 60% should be MCQ.
-- Questions should test understanding of the core concepts, not trivia.
-- Each MCQ must have exactly 4 options with one definitive correct answer.
-- Each short_answer must have a concise reference answer.
-- Include a brief explanation for every question.
+Rules:
+- 4 MCQ questions (each with exactly 4 options A/B/C/D)
+- 1-2 short answer questions
+- One correct answer per question
+- Brief explanation for each
 
-Return ONLY valid JSON in this exact structure (no markdown, no commentary):
-{
-  "questions": [
-    {
-      "id": 1,
-      "type": "mcq",
-      "question": "The question text",
-      "options": ["A", "B", "C", "D"],
-      "correct_answer": "B",
-      "user_answer": null,
-      "is_correct": null,
-      "explanation": "Why B is correct."
-    }
-  ],
-  "metadata": {
-    "generated_at": "ISO-8601 timestamp",
-    "ai_model": "${config.model}",
-    "topics": ${JSON.stringify(opts.topics)},
-    "total_questions": ${totalQuestions},
-    "mcq_count": 0,
-    "short_answer_count": 0
-  }
-}`;
+Output ONLY this JSON (no markdown, no extra text):
+{"questions":[{"id":1,"type":"mcq","question":"What is...?","options":["A","B","C","D"],"correct_answer":"B","user_answer":null,"is_correct":null,"explanation":"Because..."},{"id":2,"type":"short_answer","question":"Explain...","options":null,"correct_answer":"The answer","user_answer":null,"is_correct":null,"explanation":"Because..."}],"metadata":{"generated_at":"${new Date().toISOString()}","ai_model":"${config.model}","topics":${JSON.stringify(opts.topics)},"total_questions":${totalQuestions},"mcq_count":4,"short_answer_count":1}}`;
 
   const completion = await client.chat.completions.create({
     model: config.model,
     messages: [
-      { role: "system", content: "You are an expert quiz generator. You output only valid JSON." },
+      { role: "system", content: "You are a quiz generator. Output ONLY valid JSON, no markdown." },
       { role: "user", content: prompt },
     ],
     temperature: 0.5,
-    max_tokens: 2000,
-    response_format: { type: "json_object" },
+    max_tokens: 1500,
   });
 
   const raw = completion.choices[0]?.message?.content;
   if (!raw) throw new Error("AI returned empty quiz response");
 
-  return JSON.parse(raw);
+  return extractJSON(raw);
 }
 
 /**
@@ -214,40 +237,31 @@ export async function evaluateShortAnswer(
 ): Promise<{ isCorrect: boolean; explanation: string }> {
   const client = createAIClient(config);
 
-  const prompt = `You are grading a short-answer quiz question. Determine if the student's answer is correct.
+  const prompt = `Grade this short-answer question. Determine if the student understands the core concept.
 
 Question: ${opts.question}
 Reference answer: ${opts.correctAnswer}
 Student's answer: ${opts.userAnswer}
 
-Grading rules:
-1. Grade based on whether the CORE TECHNICAL CONCEPT was understood.
-2. Ignore minor typos, phrasing differences, or alternate terminology.
-3. Return a binary judgment: correct or incorrect.
-4. Provide a 1-2 sentence explanation justifying the grade.
-5. If the answer captures the essence but is incomplete, mark it CORRECT with a note about what could be expanded.
+Rules: Ignore typos and phrasing. Focus on core concept. If the answer captures the essence, mark correct.
 
-Return ONLY valid JSON:
-{
-  "is_correct": true,
-  "explanation": "Your 1-2 sentence explanation."
-}`;
+Output ONLY this JSON (no markdown):
+{"is_correct": true, "explanation": "1-2 sentence explanation"}`;
 
   const completion = await client.chat.completions.create({
     model: config.model,
     messages: [
-      { role: "system", content: "You are a precise quiz grader. You output only valid JSON." },
+      { role: "system", content: "You grade quiz answers. Output ONLY valid JSON, no markdown." },
       { role: "user", content: prompt },
     ],
     temperature: 0.2,
     max_tokens: 200,
-    response_format: { type: "json_object" },
   });
 
   const raw = completion.choices[0]?.message?.content;
   if (!raw) throw new Error("AI returned empty grading response");
 
-  const parsed = JSON.parse(raw);
+  const parsed = extractJSON(raw) as { is_correct?: boolean; explanation?: string };
   return {
     isCorrect: Boolean(parsed.is_correct),
     explanation: String(parsed.explanation || ""),
