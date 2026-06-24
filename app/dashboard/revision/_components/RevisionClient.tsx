@@ -71,15 +71,17 @@ export function RevisionClient({
     return (
       <div className="space-y-6">
         <RevisionHeader streak={initialStreak} />
-        <div className="rounded-xl border border-dashed border-border p-12 text-center">
-          <p className="text-4xl">📚</p>
-          <h3 className="mt-4 text-lg font-medium">No tasks to revise this week</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Complete some Upskillment tasks and they&apos;ll appear here for weekend revision.
+        <div className="glass-panel border-dashed rounded-3xl p-16 text-center shadow-inner flex flex-col items-center">
+          <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 text-3xl shadow-inner border border-indigo-500/20 mb-4">
+            📚
+          </span>
+          <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100">No tasks to revise this week</h3>
+          <p className="mt-2 text-sm text-muted-foreground max-w-sm leading-relaxed">
+            Complete some Upskillment tasks and they&apos;ll appear here automatically for weekend revision.
           </p>
           <Link
             href="/dashboard/add"
-            className="mt-4 inline-block rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition hover:opacity-90"
+            className="mt-6 inline-flex rounded-xl bg-accent px-6 py-3 text-sm font-bold text-accent-foreground shadow-lg hover:shadow-indigo-500/10 hover:opacity-95 transition duration-200 active:scale-95"
           >
             + Add Task
           </Link>
@@ -93,15 +95,17 @@ export function RevisionClient({
     return (
       <div className="space-y-6">
         <RevisionHeader streak={initialStreak} />
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center dark:border-emerald-900 dark:bg-emerald-950/30">
-          <p className="text-4xl">🎉</p>
-          <h3 className="mt-4 text-xl font-bold">Revision Complete!</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            You&apos;ve reviewed all {tasks.length} tasks this week.
+        <div className="glass-panel rounded-3xl p-12 text-center border-l-4 border-l-emerald-500 shadow-[0_8px_30px_rgba(16,185,129,0.05)] max-w-2xl mx-auto flex flex-col items-center">
+          <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-3xl shadow-inner border border-emerald-500/20 mb-4 animate-pulse">
+            🎉
+          </span>
+          <h3 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100">Revision Complete!</h3>
+          <p className="mt-2 text-sm text-muted-foreground max-w-sm leading-relaxed">
+            Awesome job! You&apos;ve successfully reviewed all {tasks.length} tasks this week.
           </p>
           <Link
             href="/dashboard"
-            className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 font-medium text-accent-foreground transition hover:opacity-90"
+            className="mt-6 inline-flex rounded-xl bg-accent px-6 py-3 text-sm font-bold text-accent-foreground shadow-lg hover:shadow-indigo-500/10 hover:opacity-95 transition duration-200 active:scale-95"
           >
             ← Back to Dashboard
           </Link>
@@ -115,16 +119,16 @@ export function RevisionClient({
       <RevisionHeader streak={initialStreak} />
 
       {/* Progress bar */}
-      <div className="rounded-xl border border-border bg-card p-4">
-        <div className="mb-2 flex items-center justify-between text-sm">
-          <span className="font-medium">
-            {currentIndex + 1} / {tasks.length}
+      <div className="glass-panel rounded-2xl p-5 shadow-sm border border-border/70">
+        <div className="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <span>
+            Topic {currentIndex + 1} of {tasks.length}
           </span>
-          <span className="text-muted-foreground">{progress}%</span>
+          <span className="font-extrabold text-indigo-500 dark:text-indigo-400">{progress}%</span>
         </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted shadow-inner border border-border/20">
           <div
-            className="h-full rounded-full bg-accent transition-all"
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 transition-all duration-300 shadow-sm"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -132,55 +136,59 @@ export function RevisionClient({
 
       {/* Current task card */}
       {currentTask && phase === "revising" && (
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
+        <div className="glass-panel rounded-2xl p-6 shadow-sm border border-border/80">
+          <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+            <span className="rounded-lg bg-indigo-500/10 px-2.5 py-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-500/15">
               📚 Upskillment
             </span>
             {currentTask.completed_at && (
-              <span>Completed {formatDate(currentTask.completed_at, "MMM d")}</span>
+              <span className="bg-card px-2 py-1 rounded-lg border border-border/50">
+                Completed {formatDate(currentTask.completed_at, "MMM d")}
+              </span>
             )}
           </div>
 
-          <h2 className="text-xl font-bold">{currentTask.task_name}</h2>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-zinc-100">{currentTask.task_name}</h2>
 
           {/* Description */}
           {currentTask.description && (
-            <div className="mt-3 rounded-lg bg-muted/30 p-3">
-              <p className="text-xs font-medium text-muted-foreground">📋 Description:</p>
-              <p className="mt-1 text-sm">{currentTask.description}</p>
+            <div className="mt-4 rounded-xl bg-muted/40 p-4 border border-border/40">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">📋 Description:</p>
+              <p className="mt-1 text-sm text-slate-700 dark:text-zinc-300 leading-relaxed">{currentTask.description}</p>
             </div>
           )}
 
           {/* Learning notes */}
           {currentTask.notes && (
-            <div className="mt-3 rounded-lg bg-indigo-50/50 p-3 dark:bg-indigo-950/20">
-              <p className="text-xs font-medium text-indigo-700 dark:text-indigo-300">📝 What you learned:</p>
-              <p className="mt-1 whitespace-pre-wrap text-sm">{currentTask.notes}</p>
+            <div className="mt-4 rounded-xl bg-indigo-500/5 p-4 border border-indigo-500/15">
+              <p className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">📝 What you learned:</p>
+              <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700 dark:text-zinc-300 leading-relaxed">{currentTask.notes}</p>
             </div>
           )}
 
           {/* Voice note (if exists) */}
           {currentTask.voice_note_url && (
-            <div className="mt-4">
-              <p className="mb-2 text-sm font-medium">🎤 Your voice note:</p>
-              <AudioPlayer src={currentTask.voice_note_url} className="max-w-md" />
+            <div className="mt-5">
+              <p className="mb-2 text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">🎤 Your voice note:</p>
+              <div className="p-1 rounded-2xl bg-muted/30 border border-border/50 max-w-sm">
+                <AudioPlayer src={currentTask.voice_note_url} className="w-full" />
+              </div>
             </div>
           )}
 
           {/* Actions */}
-          <div className="mt-6 flex gap-3">
+          <div className="mt-8 flex gap-3">
             <button
               onClick={() => handleAction("revised")}
               disabled={loading !== null}
-              className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:opacity-50"
+              className="rounded-xl bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-emerald-600 transition active:scale-95 disabled:opacity-50"
             >
               {loading === "revised" ? "..." : "✓ Revised"}
             </button>
             <button
               onClick={() => handleAction("later")}
               disabled={loading !== null}
-              className="rounded-xl border border-border px-6 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted disabled:opacity-50"
+              className="rounded-xl border border-border bg-card/45 px-6 py-2.5 text-sm font-bold text-muted-foreground transition hover:bg-muted disabled:opacity-50 active:scale-95"
             >
               {loading === "later" ? "..." : "🔁 Revise Later"}
             </button>
@@ -190,24 +198,24 @@ export function RevisionClient({
 
       {/* Quiz prompt — shown after marking revised */}
       {currentTask && phase === "quiz-prompt" && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-900 dark:bg-emerald-950/20">
-          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-            ✓ {currentTask.task_name} — marked as revised!
+        <div className="glass-panel rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-6 shadow-sm">
+          <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+            <span>✓</span> {currentTask.task_name} — marked as revised!
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
             Take a quick quiz to test your understanding of this topic?
           </p>
 
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-3">
             <Link
               href={`/dashboard/quiz?taskId=${currentTask.id}`}
-              className="rounded-xl bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition hover:opacity-90"
+              className="rounded-xl bg-accent px-6 py-2.5 text-sm font-bold text-accent-foreground shadow-lg hover:shadow-indigo-500/10 hover:opacity-95 transition active:scale-95"
             >
               🧠 Quiz this topic
             </Link>
             <button
               onClick={moveToNext}
-              className="rounded-xl border border-border px-6 py-2.5 text-sm font-medium transition hover:bg-muted"
+              className="rounded-xl border border-border bg-card/45 px-6 py-2.5 text-sm font-bold transition hover:bg-muted active:scale-95"
             >
               {currentIndex < tasks.length - 1 ? "Next topic →" : "Finish revision"}
             </button>
@@ -224,19 +232,19 @@ function RevisionHeader({
   streak: { current_streak: number; longest_streak: number };
 }) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold">📚 Weekend Revision</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100">📚 Weekend Revision</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Review each topic, then take a quiz to test your knowledge.
+          Review each topic, then take a quiz to cement your knowledge.
         </p>
       </div>
       {streak.current_streak > 0 && (
-        <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-2 text-center dark:border-orange-900 dark:bg-orange-950/30">
-          <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+        <div className="glass-panel rounded-2xl border border-orange-500/20 bg-orange-500/5 px-4 py-2.5 text-center shadow-sm shrink-0 flex flex-col items-center justify-center">
+          <p className="text-2xl font-extrabold text-orange-500 dark:text-orange-400">
             🔥 {streak.current_streak}
           </p>
-          <p className="text-xs text-muted-foreground">week streak</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase mt-0.5">streak</p>
         </div>
       )}
     </div>

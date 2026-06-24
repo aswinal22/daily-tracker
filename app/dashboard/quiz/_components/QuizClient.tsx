@@ -118,7 +118,7 @@ export function QuizClient({
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100">
             🧠 {mode === "per-task" && taskName ? `Quiz: ${taskName}` : "Knowledge Check"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -127,29 +127,31 @@ export function QuizClient({
               : "Test what you learned this week with an AI-generated quiz."}
           </p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-8 text-center">
-          <p className="text-4xl">🧠</p>
-          <h3 className="mt-4 text-lg font-medium">Ready for your quiz?</h3>
-          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+        <div className="glass-panel rounded-3xl p-10 text-center shadow-sm max-w-2xl mx-auto flex flex-col items-center">
+          <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 text-3xl shadow-inner border border-indigo-500/20 mb-4 animate-bounce">
+            🧠
+          </span>
+          <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100">Ready for your quiz?</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground leading-relaxed">
             {mode === "per-task"
-              ? "5 questions based on this task's description and your notes."
-              : "The quiz is based on your revised Upskillment tasks this week."}
+              ? "5 questions dynamically compiled based on this task's description and your notes."
+              : "A custom knowledge check based on all Upskillment tasks you revised this week."}
           </p>
           {error && (
-            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
               {error}
             </div>
           )}
           <button
             onClick={generate}
-            className="mt-6 rounded-xl bg-accent px-6 py-3 font-medium text-accent-foreground transition hover:opacity-90"
+            className="mt-8 rounded-xl bg-accent px-6 py-3 font-bold text-accent-foreground shadow-lg hover:shadow-indigo-500/10 hover:opacity-95 transition active:scale-95 duration-200"
           >
             🧠 Generate Quiz
           </button>
           <div className="mt-4">
             <Link
               href="/dashboard/revision"
-              className="text-sm text-accent hover:underline"
+              className="text-xs font-bold text-accent hover:underline"
             >
               ← Back to revision
             </Link>
@@ -163,13 +165,13 @@ export function QuizClient({
   if (phase === "generating") {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">🧠 Knowledge Check</h1>
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <p className="animate-pulse text-lg text-muted-foreground">
+        <h1 className="text-3xl font-extrabold tracking-tight">🧠 Knowledge Check</h1>
+        <div className="glass-panel rounded-3xl p-16 text-center shadow-sm max-w-2xl mx-auto flex flex-col items-center">
+          <p className="animate-pulse text-lg font-bold text-indigo-500 dark:text-indigo-400">
             🤖 Generating your quiz...
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Free AI models can take 30-60 seconds. Please wait...
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-sm">
+            Free AI models can take 30-60 seconds to structure the questions. Please wait a moment...
           </p>
         </div>
       </div>
@@ -180,10 +182,13 @@ export function QuizClient({
   if (phase === "submitting") {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">🧠 Knowledge Check</h1>
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <p className="animate-pulse text-lg text-muted-foreground">
+        <h1 className="text-3xl font-extrabold tracking-tight">🧠 Knowledge Check</h1>
+        <div className="glass-panel rounded-3xl p-16 text-center shadow-sm max-w-2xl mx-auto flex flex-col items-center">
+          <p className="animate-pulse text-lg font-bold text-indigo-500 dark:text-indigo-400">
             🤖 Grading your answers...
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Evaluating conceptual answers semantically...
           </p>
         </div>
       </div>
@@ -199,57 +204,57 @@ export function QuizClient({
     const answeredCount = Object.keys(answers).length;
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-2xl mx-auto">
         {/* Header with progress */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">🧠 Knowledge Check</h1>
-          <span className="text-sm text-muted-foreground">
-            {currentQ + 1} / {total}
+          <h1 className="text-2xl font-extrabold tracking-tight">🧠 Knowledge Check</h1>
+          <span className="text-sm font-bold text-muted-foreground bg-card px-3 py-1 rounded-xl border border-border/80 shadow-sm">
+            Question {currentQ + 1} of {total}
           </span>
         </div>
 
-        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted shadow-inner border border-border/20">
           <div
-            className="h-full rounded-full bg-accent transition-all"
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 transition-all duration-300 shadow-md"
             style={{ width: `${progress}%` }}
           />
         </div>
 
         {/* Question */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div className="mb-3">
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+        <div className="glass-panel rounded-2xl p-6 shadow-sm border border-border/80">
+          <div className="mb-4">
+            <span className="rounded-lg bg-indigo-500/10 px-2.5 py-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-500/15">
               {question.type === "mcq" ? "Multiple Choice" : "Short Answer"}
             </span>
           </div>
 
-          <h2 className="text-lg font-semibold">{question.question}</h2>
+          <h2 className="text-lg font-bold text-slate-800 dark:text-zinc-100 leading-snug">{question.question}</h2>
 
           {/* MCQ options */}
           {question.type === "mcq" && question.options && (
-            <div className="mt-4 space-y-2">
+            <div className="mt-6 space-y-3">
               {question.options.map((opt, i) => (
                 <button
                   key={i}
                   onClick={() => setAnswers({ ...answers, [question.id]: opt })}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition",
+                    "flex w-full items-center gap-3.5 rounded-xl border px-4 py-3 text-left text-sm transition duration-200",
                     answers[question.id] === opt
-                      ? "border-accent bg-accent/5"
-                      : "border-border hover:bg-muted",
+                      ? "border-indigo-500 bg-indigo-500/10 font-semibold text-indigo-700 dark:text-indigo-300 dark:border-indigo-400"
+                      : "border-border hover:bg-muted/80 text-slate-700 dark:text-zinc-300",
                   )}
                 >
                   <span
                     className={cn(
-                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium",
+                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border text-xs font-bold transition",
                       answers[question.id] === opt
-                        ? "border-accent bg-accent text-accent-foreground"
-                        : "border-border",
+                        ? "border-indigo-500 bg-indigo-500 text-white shadow-sm"
+                        : "border-border bg-card/60",
                     )}
                   >
                     {String.fromCharCode(65 + i)}
                   </span>
-                  <span className="font-mono text-sm">{opt}</span>
+                  <span className="text-sm leading-relaxed">{opt}</span>
                 </button>
               ))}
             </div>
@@ -257,13 +262,13 @@ export function QuizClient({
 
           {/* Short answer input */}
           {question.type === "short_answer" && (
-            <div className="mt-4">
+            <div className="mt-5">
               <textarea
                 value={answers[question.id] || ""}
                 onChange={(e) => setAnswers({ ...answers, [question.id]: e.target.value })}
-                placeholder="Type your answer..."
-                rows={3}
-                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+                placeholder="Type your explanation here..."
+                rows={4}
+                className="w-full rounded-xl border border-border/80 bg-background/50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 backdrop-blur-sm"
               />
             </div>
           )}
@@ -274,7 +279,7 @@ export function QuizClient({
           <button
             onClick={() => setCurrentQ((i) => Math.max(0, i - 1))}
             disabled={currentQ === 0}
-            className="rounded-xl border border-border px-4 py-2 text-sm font-medium transition hover:bg-muted disabled:opacity-30"
+            className="rounded-xl border border-border bg-card/45 px-5 py-2 text-sm font-bold transition hover:bg-muted active:scale-95 disabled:opacity-30"
           >
             ← Previous
           </button>
@@ -283,14 +288,14 @@ export function QuizClient({
             <button
               onClick={submit}
               disabled={answeredCount === 0}
-              className="rounded-xl bg-emerald-600 px-6 py-2 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:opacity-50"
+              className="rounded-xl bg-emerald-500 px-6 py-2 text-sm font-bold text-white shadow-md hover:bg-emerald-600 transition active:scale-95 disabled:opacity-50"
             >
               ✓ Submit Quiz
             </button>
           ) : (
             <button
               onClick={() => setCurrentQ((i) => Math.min(total - 1, i + 1))}
-              className="rounded-xl bg-accent px-6 py-2 text-sm font-medium text-accent-foreground transition hover:opacity-90"
+              className="rounded-xl bg-accent px-6 py-2 text-sm font-bold text-accent-foreground shadow-md hover:opacity-95 transition active:scale-95"
             >
               Next →
             </button>
@@ -298,7 +303,7 @@ export function QuizClient({
         </div>
 
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
             {error}
           </div>
         )}

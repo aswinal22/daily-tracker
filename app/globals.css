@@ -3,25 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --card: #ffffff;
-  --border: #e5e7eb;
-  --muted: #f3f4f6;
-  --muted-foreground: #6b7280;
-  --accent: #4f46e5;
-  --accent-foreground: #ffffff;
+  --background-rgb: 248 250 252;
+  --background: rgb(var(--background-rgb));
+  --foreground-rgb: 15 23 42;
+  --foreground: rgb(var(--foreground-rgb));
+  --card-rgb: 255 255 255;
+  --card: rgb(var(--card-rgb) / 0.7);
+  --border-rgb: 226 232 240;
+  --border: rgb(var(--border-rgb) / 0.8);
+  --muted-rgb: 241 245 249;
+  --muted: rgb(var(--muted-rgb));
+  --muted-foreground-rgb: 71 85 105;
+  --muted-foreground: rgb(var(--muted-foreground-rgb));
+  --accent-rgb: 99 102 241;
+  --accent: rgb(var(--accent-rgb));
+  --accent-foreground-rgb: 255 255 255;
+  --accent-foreground: rgb(var(--accent-foreground-rgb));
+  --glow-color: rgb(var(--accent-rgb) / 0.15);
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --card: #161616;
-  --border: #262626;
-  --muted: #1f1f1f;
-  --muted-foreground: #a1a1aa;
-  --accent: #6366f1;
-  --accent-foreground: #ffffff;
+  --background-rgb: 3 0 20;
+  --foreground-rgb: 244 244 245;
+  --card-rgb: 10 10 18;
+  --border-rgb: 255 255 255;
+  --border: rgb(var(--border-rgb) / 0.06);
+  --card: rgb(var(--card-rgb) / 0.6);
+  --muted-rgb: 255 255 255;
+  --muted: rgb(var(--muted-rgb) / 0.04);
+  --muted-foreground-rgb: 148 163 184;
+  --accent-rgb: 129 140 248;
+  --accent-foreground-rgb: 255 255 255;
+  --glow-color: rgb(var(--accent-rgb) / 0.25);
 }
 
 body {
@@ -43,6 +56,51 @@ body {
     background: var(--border);
     border-radius: 9999px;
   }
+  .glass-panel {
+    background: var(--card);
+    backdrop-filter: blur(16px) saturate(130%);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+  }
+  .dark .glass-panel {
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  }
+  .glass-card-hover {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-card-hover:hover {
+    transform: translateY(-2px);
+    border-color: rgba(99, 102, 241, 0.25);
+    box-shadow: 0 12px 40px 0 var(--glow-color);
+  }
+  .dark .glass-card-hover:hover {
+    border-color: rgba(129, 140, 248, 0.3);
+  }
+  .mesh-gradient {
+    background-color: var(--background);
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(20, 184, 166, 0.08) 0px, transparent 50%);
+  }
+  .dark .mesh-gradient {
+    background-color: #030014;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.16) 0px, transparent 55%),
+      radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.14) 0px, transparent 55%),
+      radial-gradient(at 50% 100%, rgba(20, 184, 166, 0.1) 0px, transparent 55%);
+  }
+  .grid-bg {
+    background-size: 50px 50px;
+    background-image: 
+      linear-gradient(to right, rgba(99, 102, 241, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+  }
+  .dark .grid-bg {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  }
 }
 
 /* ─── GitHub/LeetCode-style heatmap ─── */
@@ -60,16 +118,20 @@ body {
 }
 
 /* Cell colors — light mode */
-.gh-cell-empty { fill: #ebedf0; }
+.gh-cell-empty { fill: rgba(226, 232, 240, 0.6); }
 .gh-cell-1 { fill: #c7d2fe; }
 .gh-cell-2 { fill: #818cf8; }
 .gh-cell-3 { fill: #4f46e5; }
 .gh-cell-4 { fill: #3730a3; }
 
 /* Cell colors — dark mode */
-.dark .gh-cell-empty { fill: #1e1e2e; }
+.dark .gh-cell-empty { fill: rgba(255, 255, 255, 0.04); }
 .dark .gh-month-label { fill: #71717a; }
 .dark .gh-day-label { fill: #71717a; }
+.dark .gh-cell-1 { fill: #312e81; }
+.dark .gh-cell-2 { fill: #4338ca; }
+.dark .gh-cell-3 { fill: #6366f1; }
+.dark .gh-cell-4 { fill: #818cf8; }
 
 /* Legend swatches */
 .gh-legend {
@@ -78,3 +140,4 @@ body {
   height: 11px;
   border-radius: 2px;
 }
+

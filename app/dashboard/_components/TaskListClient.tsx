@@ -125,8 +125,8 @@ export function TaskListClient({ initialTasks }: TaskListClientProps) {
   return (
     <div className="space-y-6">
       {/* Today's progress */}
-      <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="glass-panel rounded-2xl p-6 shadow-sm">
+        <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Today&apos;s Progress
         </h2>
         <ProgressBar value={completedCount} total={totalToday} />
@@ -141,10 +141,10 @@ export function TaskListClient({ initialTasks }: TaskListClientProps) {
       >
         {voicePromptTask && (
           <div>
-            <p className="mb-1 text-sm">
-              <span className="font-medium">✓ {voicePromptTask.task_name}</span> completed!
+            <p className="mb-1.5 text-sm">
+              <span className="font-bold">✓ {voicePromptTask.task_name}</span> completed!
             </p>
-            <p className="mb-4 text-sm text-muted-foreground">
+            <p className="mb-5 text-sm text-muted-foreground leading-relaxed">
               Capture a quick summary of what you did or learned. You can play it
               back later during weekend revision.
             </p>
@@ -160,21 +160,21 @@ export function TaskListClient({ initialTasks }: TaskListClientProps) {
       {/* Overdue section */}
       {overdueTasks.length > 0 && (
         <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-lg font-semibold">
-              ⚠️ Overdue
-              <span className="rounded-full bg-red-100 px-2 py-0.5 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="flex items-center gap-2.5 text-xl font-extrabold tracking-tight">
+              <span>⚠️</span> Overdue
+              <span className="rounded-lg bg-red-500/10 px-2.5 py-0.5 text-xs font-bold text-red-600 dark:text-red-400 border border-red-500/15">
                 {overdueTasks.length}
               </span>
             </h2>
             <button
               onClick={() => handleMotivate({ ...overdueTasks[0], id: "bulk" } as Task)}
-              className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300"
+              className="rounded-xl bg-indigo-500/10 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 px-3.5 py-1.5 text-xs font-bold transition active:scale-95"
             >
               🤖 Motivate all overdue
             </button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {overdueTasks.map((task) => (
               <TaskCard
                 key={task.id}
@@ -191,13 +191,13 @@ export function TaskListClient({ initialTasks }: TaskListClientProps) {
       {/* Active tasks */}
       {nonOverdueActive.length > 0 && (
         <section>
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-            🟢 Active Tasks
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-sm text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+          <h2 className="mb-4 flex items-center gap-2.5 text-xl font-extrabold tracking-tight">
+            <span>🟢</span> Active Tasks
+            <span className="rounded-lg bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/15">
               {nonOverdueActive.length}
             </span>
           </h2>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {nonOverdueActive.map((task) => (
               <TaskCard
                 key={task.id}
@@ -213,20 +213,20 @@ export function TaskListClient({ initialTasks }: TaskListClientProps) {
       {/* Completed today */}
       {completedTasks.length > 0 && (
         <section>
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-            ✓ Completed
-            <span className="rounded-full bg-muted px-2 py-0.5 text-sm text-muted-foreground">
+          <h2 className="mb-4 flex items-center gap-2.5 text-xl font-extrabold tracking-tight">
+            <span>✓</span> Completed Today
+            <span className="rounded-lg bg-card/60 px-2.5 py-0.5 text-xs font-bold text-muted-foreground border border-border/60">
               {completedCount}
             </span>
           </h2>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {completedTasks.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
                 onDelete={handleDelete}
                 onNotesUpdate={handleNotesUpdate}
-                showActions={false}
+                showActions={true}
               />
             ))}
           </div>
@@ -235,15 +235,17 @@ export function TaskListClient({ initialTasks }: TaskListClientProps) {
 
       {/* Empty state */}
       {tasks.length === 0 && (
-        <div className="rounded-xl border border-dashed border-border p-12 text-center">
-          <p className="text-4xl">📋</p>
-          <h3 className="mt-4 text-lg font-medium">No tasks yet</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Add your first task to get started.
+        <div className="glass-panel border-dashed rounded-3xl p-16 text-center shadow-inner flex flex-col items-center">
+          <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 text-3xl shadow-inner border border-indigo-500/20 mb-4">
+            📋
+          </span>
+          <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100">No tasks planned yet</h3>
+          <p className="mt-2 text-sm text-muted-foreground max-w-sm leading-relaxed">
+            Organize your day, track priorities, and upskill. Add your first task to get started.
           </p>
           <Link
             href="/dashboard/add"
-            className="mt-4 inline-block rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition hover:opacity-90"
+            className="mt-6 inline-flex rounded-xl bg-accent px-6 py-3 text-sm font-bold text-accent-foreground shadow-lg hover:shadow-indigo-500/10 hover:opacity-95 transition duration-200 active:scale-95"
           >
             + Add New Task
           </Link>

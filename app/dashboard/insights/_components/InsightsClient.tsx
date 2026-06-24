@@ -26,7 +26,7 @@ interface InsightsData {
   range: string;
 }
 
-const PIE_COLORS = ["#6366f1", "#0ea5e9", "#14b8a6"];
+const PIE_COLORS = ["#818cf8", "#38bdf8", "#2dd4bf"];
 
 export function InsightsClient() {
   const [data, setData] = useState<InsightsData | null>(null);
@@ -49,9 +49,9 @@ export function InsightsClient() {
   if (loading || !data) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">📊 Insights</h1>
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <p className="animate-pulse text-muted-foreground">Loading insights...</p>
+        <h1 className="text-3xl font-extrabold tracking-tight">📊 Insights</h1>
+        <div className="glass-panel rounded-3xl p-20 text-center shadow-sm">
+          <p className="animate-pulse font-medium text-muted-foreground">Loading insights...</p>
         </div>
       </div>
     );
@@ -65,20 +65,23 @@ export function InsightsClient() {
   const dayData = Object.entries(data.dayOfWeek).map(([day, count]) => ({ day, count }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header + range filter */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">📊 Insights</h1>
-        <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100">📊 Insights</h1>
+          <p className="text-sm text-muted-foreground mt-1">Detailed productivity breakdown and trends.</p>
+        </div>
+        <div className="flex gap-2 bg-card/45 p-1 rounded-2xl border border-border/80 backdrop-blur-sm shadow-inner">
           {(["week", "month", "3months", "all"] as Range[]).map((r) => (
             <button
               key={r}
               onClick={() => setRange(r)}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-xs font-medium transition",
+                "rounded-xl px-4 py-2 text-xs font-bold transition duration-200 active:scale-95",
                 range === r
-                  ? "bg-accent text-accent-foreground"
-                  : "border border-border text-muted-foreground hover:bg-muted",
+                  ? "bg-accent text-accent-foreground shadow-md shadow-indigo-500/10"
+                  : "text-muted-foreground hover:bg-card hover:text-slate-900 dark:hover:text-zinc-100",
               )}
             >
               {r === "3months" ? "3 Months" : r.charAt(0).toUpperCase() + r.slice(1)}
@@ -99,35 +102,39 @@ export function InsightsClient() {
       <ChartCard title="📈 Completion Rate Over Time">
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={data.weeklyCompletion}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.6} />
             <XAxis
               dataKey="week"
               tickFormatter={(w) => w.slice(5)}
               stroke="var(--muted-foreground)"
               fontSize={11}
+              fontWeight={600}
             />
-            <YAxis stroke="var(--muted-foreground)" fontSize={11} />
+            <YAxis stroke="var(--muted-foreground)" fontSize={11} fontWeight={600} />
             <Tooltip
               contentStyle={{
                 backgroundColor: "var(--card)",
-                border: "1px solid var(--border)",
-                borderRadius: "12px",
+                borderColor: "var(--border)",
+                borderRadius: "16px",
+                backdropFilter: "blur(12px)",
+                boxShadow: "0 10px 30px 0 rgba(0,0,0,0.1)",
               }}
             />
             <Line
               type="monotone"
               dataKey="completed"
-              stroke="#6366f1"
-              strokeWidth={2}
-              dot={{ r: 4 }}
+              stroke="#818cf8"
+              strokeWidth={3}
+              dot={{ r: 5, strokeWidth: 1 }}
+              activeDot={{ r: 7 }}
               name="Completed"
             />
             <Line
               type="monotone"
               dataKey="total"
               stroke="var(--muted-foreground)"
-              strokeWidth={1}
-              strokeDasharray="5 5"
+              strokeWidth={1.5}
+              strokeDasharray="4 4"
               dot={false}
               name="Total"
             />
@@ -135,7 +142,7 @@ export function InsightsClient() {
         </ResponsiveContainer>
       </ChartCard>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Category breakdown */}
         <ChartCard title="🗂️ Category Breakdown">
           <ResponsiveContainer width="100%" height={250}>
@@ -147,6 +154,8 @@ export function InsightsClient() {
                 cx="50%"
                 cy="50%"
                 outerRadius={80}
+                innerRadius={50}
+                paddingAngle={4}
                 label={(entry) => entry.name}
               >
                 {categoryData.map((_, i) => (
@@ -156,8 +165,9 @@ export function InsightsClient() {
               <Tooltip
                 contentStyle={{
                   backgroundColor: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "12px",
+                  borderColor: "var(--border)",
+                  borderRadius: "16px",
+                  backdropFilter: "blur(12px)",
                 }}
               />
             </PieChart>
@@ -168,23 +178,25 @@ export function InsightsClient() {
         <ChartCard title="📅 Most Productive Day">
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={dayData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis type="number" stroke="var(--muted-foreground)" fontSize={11} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.6} />
+              <XAxis type="number" stroke="var(--muted-foreground)" fontSize={11} fontWeight={600} />
               <YAxis
                 type="category"
                 dataKey="day"
                 stroke="var(--muted-foreground)"
                 fontSize={11}
-                width={40}
+                fontWeight={600}
+                width={45}
               />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "12px",
+                  borderColor: "var(--border)",
+                  borderRadius: "16px",
+                  backdropFilter: "blur(12px)",
                 }}
               />
-              <Bar dataKey="count" fill="#6366f1" radius={[0, 6, 6, 0]} />
+              <Bar dataKey="count" fill="#818cf8" radius={[0, 8, 8, 0]} name="Completed" />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -194,22 +206,24 @@ export function InsightsClient() {
       <ChartCard title="⚠️ Overdue Trend">
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={data.overdueTrend}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.6} />
             <XAxis
               dataKey="week"
               tickFormatter={(w) => w.slice(5)}
               stroke="var(--muted-foreground)"
               fontSize={11}
+              fontWeight={600}
             />
-            <YAxis stroke="var(--muted-foreground)" fontSize={11} />
+            <YAxis stroke="var(--muted-foreground)" fontSize={11} fontWeight={600} />
             <Tooltip
               contentStyle={{
                 backgroundColor: "var(--card)",
-                border: "1px solid var(--border)",
-                borderRadius: "12px",
+                borderColor: "var(--border)",
+                borderRadius: "16px",
+                backdropFilter: "blur(12px)",
               }}
             />
-            <Bar dataKey="overdue" fill="#ef4444" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="overdue" fill="#f87171" radius={[8, 8, 0, 0]} name="Overdue" />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
@@ -219,27 +233,30 @@ export function InsightsClient() {
         <ChartCard title="🧠 Quiz Score Progression">
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={data.quizProgression}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.6} />
               <XAxis
                 dataKey="week"
                 tickFormatter={(w) => w.slice(5)}
                 stroke="var(--muted-foreground)"
                 fontSize={11}
+                fontWeight={600}
               />
-              <YAxis domain={[0, 100]} stroke="var(--muted-foreground)" fontSize={11} />
+              <YAxis domain={[0, 100]} stroke="var(--muted-foreground)" fontSize={11} fontWeight={600} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "12px",
+                  borderColor: "var(--border)",
+                  borderRadius: "16px",
+                  backdropFilter: "blur(12px)",
                 }}
               />
               <Line
                 type="monotone"
                 dataKey="score"
-                stroke="#14b8a6"
-                strokeWidth={2}
-                dot={{ r: 4 }}
+                stroke="#2dd4bf"
+                strokeWidth={3}
+                dot={{ r: 5 }}
+                activeDot={{ r: 7 }}
                 name="Score %"
               />
             </LineChart>
@@ -249,10 +266,12 @@ export function InsightsClient() {
 
       {/* Streak heatmap (GitHub/LeetCode style) */}
       <ChartCard title="🔥 Activity Heatmap">
-        <GithubHeatmap values={data.heatmap} numWeeks={53} />
-        <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+        <div className="overflow-x-auto scrollbar-thin py-2">
+          <GithubHeatmap values={data.heatmap} numWeeks={53} />
+        </div>
+        <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
           <span>Less</span>
-          <span className="gh-legend gh-cell-empty" />
+          <span className="gh-legend gh-cell-empty border border-border/30" />
           <span className="gh-legend gh-cell-1" />
           <span className="gh-legend gh-cell-2" />
           <span className="gh-legend gh-cell-3" />
@@ -266,20 +285,22 @@ export function InsightsClient() {
 
 function SummaryCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
+    <div className="glass-panel rounded-2xl p-5 shadow-sm relative overflow-hidden transition-all duration-300 hover:scale-[1.02] border border-border/70">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-full blur-xl pointer-events-none" />
+      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-2 text-3xl font-extrabold tracking-tight text-slate-800 dark:text-zinc-100">{value}</p>
     </div>
   );
 }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className="glass-panel rounded-2xl p-6 shadow-sm border border-border/70 relative">
+      <h2 className="mb-5 text-xs font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400">
         {title}
       </h2>
       {children}
     </div>
   );
 }
+

@@ -22,36 +22,42 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex h-full flex-col gap-1 p-3">
+    <nav className="flex h-full flex-col gap-1.5 p-4">
       <Link
         href="/dashboard"
         onClick={onNavigate}
-        className="mb-4 flex items-center gap-2 px-3 py-2 text-lg font-bold"
+        className="mb-6 flex items-center gap-3 px-3 py-3 rounded-2xl transition hover:bg-card/40 border border-transparent hover:border-border/40"
       >
-        <span>📋</span>
-        <span>Daily Tracker</span>
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-lg shadow-md text-white">
+          📋
+        </span>
+        <span className="font-extrabold tracking-tight text-slate-900 dark:text-white">
+          Daily Tracker
+        </span>
       </Link>
 
-      {NAV_ITEMS.map((item) => {
-        const isActive = item.exact
-          ? pathname === item.href
-          : pathname.startsWith(item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-              isActive
-                ? "bg-accent text-accent-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-          >
-            <span className="text-base">{item.icon}</span>
-            <span>{item.label}</span>
-          </Link>
-        );
-      })}
+      <div className="space-y-1">
+        {NAV_ITEMS.map((item) => {
+          const isActive = item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
+              className={`flex items-center gap-3.5 rounded-xl px-3.5 py-3 text-sm font-semibold transition-all duration-200 border ${
+                isActive
+                  ? "bg-gradient-to-r from-indigo-500/10 to-violet-600/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300 dark:border-indigo-400/20"
+                  : "border-transparent text-muted-foreground hover:bg-card/45 hover:text-slate-900 dark:hover:text-zinc-100 hover:border-border/40"
+              }`}
+            >
+              <span className={`text-lg transition-transform ${isActive ? "scale-110" : ""}`}>{item.icon}</span>
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }
