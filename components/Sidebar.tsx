@@ -22,11 +22,11 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex h-full flex-col gap-1.5 p-4">
+    <nav className="flex h-full flex-col gap-1.5 overflow-y-auto scrollbar-thin p-4">
       <Link
         href="/dashboard"
         onClick={onNavigate}
-        className="mb-6 flex items-center gap-3 px-3 py-3 rounded-2xl transition hover:bg-card/40 border border-transparent hover:border-border/40"
+        className="mb-6 flex items-center gap-3 px-3 py-3 rounded-2xl transition hover:bg-card/40 border border-transparent hover:border-border/40 shrink-0"
       >
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-lg shadow-md text-white">
           📋

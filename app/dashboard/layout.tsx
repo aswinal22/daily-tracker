@@ -29,8 +29,8 @@ export default async function DashboardLayout({
       <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-emerald-500/5 dark:bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Desktop sidebar */}
-      <aside className="hidden w-64 shrink-0 border-r border-border/85 bg-card/30 backdrop-blur-xl lg:block relative z-20">
+      {/* Desktop sidebar — sticky, full viewport height */}
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-border/85 bg-card/30 backdrop-blur-xl lg:block relative z-20">
         <Sidebar />
       </aside>
 
