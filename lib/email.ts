@@ -1,27 +1,39 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import type { Task } from "@/types";
 
 /**
- * Email sending via Resend.
+ * Email sending via Nodemailer + Gmail SMTP.
  *
- * All functions gracefully no-op (return a skipped status) when
- * RESEND_API_KEY is not set — so local dev without email config
- * doesn't crash, and the AI features still work (the message is
- * returned to the caller).
+ * Uses a Gmail App Password (not your regular password) for authentication.
+ * Gmail allows sending to any recipient (up to ~500/day) without owning a domain.
+ *
+ * Required env vars:
+ *   GMAIL_USER          — your Gmail address (e.g. aswins.sivabalan@gmail.com)
+ *   GMAIL_APP_PASSWORD  — 16-char App Password from Google Account settings
+ *
+ * All functions gracefully no-op when env vars are missing.
  */
 
-let client: Resend | null = null;
+let transporter: nodemailer.Transporter | null = null;
 
-function getEmailClient(): Resend | null {
-  if (client) return client;
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return null;
-  client = new Resend(key);
-  return client;
+function getTransporter(): nodemailer.Transporter | null {
+  if (transporter) return transporter;
+
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !pass) return null;
+
+  transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user, pass },
+  });
+
+  return transporter;
 }
 
-function getFromEmail(): string {
-  return process.env.EMAIL_FROM || "Daily Task Dashboard <onboarding@resend.dev>";
+function getFromEmail(): { name: string; address: string } {
+  const user = process.env.GMAIL_USER || "noreply@gmail.com";
+  return { name: "Daily Task Dashboard", address: user };
 }
 
 function getAppUrl(): string {
@@ -40,23 +52,26 @@ async function send(
   subject: string,
   html: string,
 ): Promise<EmailResult> {
-  const resend = getEmailClient();
-  if (!resend) {
+  const transport = getTransporter();
+  if (!transport) {
     return { sent: false, skipped: true };
   }
 
-  const { data, error } = await resend.emails.send({
-    from: getFromEmail(),
-    to,
-    subject,
-    html,
-  });
+  try {
+    const info = await transport.sendMail({
+      from: getFromEmail(),
+      to,
+      subject,
+      html,
+    });
 
-  if (error) {
-    return { sent: false, error: error.message };
+    return { sent: true, id: info.messageId };
+  } catch (err) {
+    return {
+      sent: false,
+      error: err instanceof Error ? err.message : "Failed to send email",
+    };
   }
-
-  return { sent: true, id: data?.id };
 }
 
 // ─── Templates ──────────────────────────────────────────────
