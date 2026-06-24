@@ -27,14 +27,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const resultId = body.result_id as string | undefined;
 
-  // Fetch the quiz result
-  let query = supabase
-    .from("quiz_results")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("taken_at", { ascending: false })
-    .limit(1);
-
+  // Fetch the quiz result (by id if provided, otherwise most recent)
   let quizResult: QuizResult | null = null;
 
   if (resultId) {
@@ -49,11 +42,21 @@ export async function POST(request: NextRequest) {
     }
     quizResult = data;
   } else {
-    const { data, error } = await query.single<QuizResult>();
+    const { data, error } = await supabase
+      .from("quiz_results")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("taken_at", { ascending: false })
+      .limit(1)
+      .single<QuizResult>();
     if (error || !data) {
       return NextResponse.json({ error: "No quiz results found" }, { status: 404 });
     }
     quizResult = data;
+  }
+
+  if (!quizResult) {
+    return NextResponse.json({ error: "No quiz results found" }, { status: 404 });
   }
 
   // Get user's display name
