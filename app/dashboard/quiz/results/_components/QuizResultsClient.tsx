@@ -24,9 +24,22 @@ export function QuizResultsClient({ initialResults }: QuizResultsClientProps) {
     setEmailing(true);
     showToast("📬 Sending results email...", "info");
 
-    // Best-effort: trigger email via the insights API pattern
-    // (Resend requires server-side send; we use a fetch to a lightweight endpoint)
-    showToast("📬 Check your email for results!", "success");
+    try {
+      const res = await fetch("/api/quiz/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ result_id: latest.id }),
+      });
+
+      if (res.ok) {
+        showToast("📬 Check your email for results!", "success");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || "Failed to send email", "error");
+      }
+    } catch {
+      showToast("Network error. Please try again.", "error");
+    }
     setEmailing(false);
   }, [latest, showToast]);
 
